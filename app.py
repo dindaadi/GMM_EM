@@ -373,7 +373,7 @@ def main():
                 X_pca = pca.fit_transform(X_scaled)
                 gmm_viz = GaussianMixture(
                     n_components=n_components,
-                    covariance_type=covariance_type,
+                    covariance_type='full',
                     n_init=n_init,
                     random_state=42
                 )
@@ -592,7 +592,7 @@ def main():
                         # Fit GMM
                         gmm_k = GaussianMixture(
                             n_components=k,
-                            covariance_type=covariance_type,
+                            covariance_type='full',
                             n_init=1,
                             random_state=42
                         )
