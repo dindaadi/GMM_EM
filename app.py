@@ -298,14 +298,6 @@ def main():
                 value=3
             )
             
-            covariance_types = ["full", "tied", "diag", "spherical"]
-            covariance_type = st.selectbox(
-                "Tipe kovarians:",
-                options=covariance_types,
-                index=0,
-                help="Tipe kovarians menentukan bentuk dan orientasi cluster"
-            )
-            
             n_init = st.slider(
                 "Jumlah inisialisasi:",
                 min_value=1,
@@ -352,7 +344,7 @@ def main():
                 # Train GMM
                 gmm = GaussianMixture(
                     n_components=n_components,
-                    covariance_type=covariance_type,
+                    covariance_type='full',
                     n_init=n_init,
                     max_iter=max_iter,
                     tol=tolerance,
