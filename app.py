@@ -323,6 +323,13 @@ def main():
                 help="Jumlah iterasi maksimum untuk konvergensi algoritma"
             )
 
+            tolerance = st.sidebar.number_input(
+                "Tolerance (default=1e-3):", 
+                min_value=0.0, 
+                value=1e-3, 
+                format="%.3e"
+            )
+
             # Tombol untuk menjalankan GMM
             run_gmm = st.button("🚀 Jalankan GMM Clustering", type="primary")
         
@@ -348,6 +355,7 @@ def main():
                     covariance_type=covariance_type,
                     n_init=n_init,
                     max_iter=max_iter,
+                    tol=tolerance,
                     random_state=42
                 )
                 gmm.fit(X_scaled)
