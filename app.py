@@ -414,10 +414,12 @@ def main():
                 # Tampilkan distribusi cluster sebagai plot
                 st.subheader("Distribusi Cluster")
                 fig, ax = plt.subplots(figsize=(8, 6))
-                ax.bar(cluster_counts.index, cluster_counts.values)
+                ax.bar(cluster_counts.index, cluster_counts.values, color=cm.viridis(cluster_counts.index / len(cluster_counts)))
                 ax.set_xlabel("Cluster")
                 ax.set_ylabel("Jumlah Sampel")
                 ax.set_title("Distribusi Cluster")
+                ax.set_xticks(np.arange(results['n_components']))
+                ax.set_xticklabels([f"Cluster {i}" for i in range(results['n_components'])])
                 st.pyplot(fig)
 
                 display_gmm_results(results['gmm'], results['X_pca'])
