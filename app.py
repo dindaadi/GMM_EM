@@ -31,7 +31,7 @@ def plot_ellipse(gmm, ax):
 
         width, height = 2 * np.sqrt(5.991 * vals)
         ellip = Ellipse(xy=mean, width=width, height=height, angle=angle,
-                    edgecolor=colors[i % len(colors)], facecolor='none',fill=False, linestyle='--')
+                    edgecolor=colors[i], facecolor='none',fill=False, linestyle='--')
         ax.add_patch(ellip)
 
 def create_silhouette_plot(silhouette_vals, labels, n_components, sil_score):
