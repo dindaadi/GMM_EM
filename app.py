@@ -2,9 +2,10 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import seaborn as sns
 from sklearn.mixture import GaussianMixture
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score, silhouette_samples
 from matplotlib.patches import Ellipse
@@ -23,7 +24,7 @@ st.set_page_config(
 # =============================================
 def plot_ellipse(gmm, ax):
     """Gambar ellipse berdasarkan mean dan covariance matrix"""
-    colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'orange', 'purple', 'brown']
+    colors = cm.viridis(np.linspace(0, 1, gmm.n_components))  # Viridis colormap
     for i, (mean, cov) in enumerate(zip(gmm.means_, gmm.covariances_)):
         vals, vecs = np.linalg.eigh(cov)
         angle = np.degrees(np.arctan2(vecs[1, 0], vecs[0, 0]))
@@ -84,73 +85,6 @@ def create_silhouette_plot(silhouette_vals, labels, n_components, sil_score):
     
     return fig, stats_data
 
-def create_metrics_comparison_plot(min_clusters, max_clusters, X_scaled):
-    """
-    Membuat plot perbandingan metrik AIC dan BIC
-    
-    Parameters:
-    -----------
-    min_clusters : int
-        Jumlah cluster minimum
-    max_clusters : int
-        Jumlah cluster maksimum
-    X_scaled : array-like
-        Data yang sudah di-standarisasi
-    
-    Returns:
-    --------
-    fig : matplotlib figure
-        Figure yang berisi plot perbandingan AIC dan BIC
-    aic_values : list
-        Daftar nilai AIC
-    bic_values : list
-        Daftar nilai BIC
-    """
-    # Hitung AIC dan BIC untuk berbagai jumlah cluster
-    aic_values, bic_values = [], []
-    range_n_clusters = range(min_clusters, max_clusters + 1)
-    
-    # Progress bar
-    progress_bar = st.progress(0)
-    
-    for i, k in enumerate(range_n_clusters):
-        # Update progress bar
-        progress = (i + 1) / len(range_n_clusters)
-        progress_bar.progress(progress)
-        
-        # Fit GMM dan hitung metrik
-        gmm_k = GaussianMixture(n_components=k, covariance_type="full", random_state=42, n_init=10)
-        gmm_k.fit(X_scaled)
-        aic_values.append(gmm_k.aic(X_scaled))
-        bic_values.append(gmm_k.bic(X_scaled))
-    
-    # Reset progress bar
-    progress_bar.empty()
-    
-    # Buat plot
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(range_n_clusters, aic_values, label="AIC", marker="o", linewidth=2, color='blue')
-    ax.plot(range_n_clusters, bic_values, label="BIC", marker="s", linewidth=2, color='red')
-    
-    # Tandai nilai minimum
-    min_aic_idx = np.argmin(aic_values)
-    min_bic_idx = np.argmin(bic_values)
-    
-    ax.scatter(range_n_clusters[min_aic_idx], aic_values[min_aic_idx], s=100, c='blue', 
-               marker='*', edgecolor='black', zorder=5, label=f'Min AIC: {min_aic_idx + min_clusters}')
-    ax.scatter(range_n_clusters[min_bic_idx], bic_values[min_bic_idx], s=100, c='red', 
-               marker='*', edgecolor='black', zorder=5, label=f'Min BIC: {min_bic_idx + min_clusters}')
-    
-    # Pengaturan plot
-    ax.set_xlabel("Jumlah Komponen", fontsize=12)
-    ax.set_ylabel("Nilai", fontsize=12)
-    ax.set_title("AIC dan BIC untuk Berbagai Jumlah Komponen GMM", fontsize=14)
-    ax.set_xticks(range_n_clusters)
-    ax.legend(fontsize=10)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    return fig, aic_values, bic_values
-
 def create_cluster_visualization(X_pca, labels, gmm):
     """
     Membuat visualisasi cluster dengan elips dan centroid
@@ -187,8 +121,7 @@ def create_cluster_visualization(X_pca, labels, gmm):
         gmm.means_[:, 0], gmm.means_[:, 1], 
         marker="X", 
         s=200, 
-        color="red", 
-        edgecolor="black", 
+        cmap="viridis", 
         linewidth=2,
         label="Centroid"
     )
@@ -283,11 +216,11 @@ def main():
             selected_columns = st.multiselect(
                 "Pilih fitur untuk GMM:",
                 options=numeric_columns,
-                default=numeric_columns[:min(3, len(numeric_columns))]
+                default=numeric_columns[:min(2, len(numeric_columns))]
             )
             
             # Pilihan standardisasi
-            standardization_option = st.radio("Gunakan Standardisasi Data?", ["Tanpa Standardisasi", "Standardisasi (Z-score)"])
+            standardization_option = st.radio("Gunakan Standardisasi Data?", ["Tanpa Standardisasi", "Standardisasi (Z-score)", "Min-Max Scaling"])
             
             # Parameter GMM
             st.markdown("### Parameter GMM")
@@ -319,7 +252,8 @@ def main():
                 "Tolerance (default=1e-3):", 
                 min_value=0.0, 
                 value=1e-3, 
-                format="%.3e"
+                format="%.3e",
+                help="Kriteria konvergensi algoritma"
             )
 
             # Tombol untuk menjalankan GMM
@@ -337,6 +271,9 @@ def main():
                 
                 if standardization_option == "Standardisasi (Z-score)":
                     scaler = StandardScaler()
+                    X_scaled = scaler.fit_transform(X)
+                elif standardization_option == "Min-Max Scaling":
+                    scaler = MinMaxScaler()
                     X_scaled = scaler.fit_transform(X)
                 else:
                     X_scaled = X
@@ -375,6 +312,8 @@ def main():
                     n_components=n_components,
                     covariance_type='full',
                     n_init=n_init,
+                    max_iter=max_iter,
+                    tol=tolerance,
                     random_state=42
                 )
                 gmm_viz.fit(X_pca)
@@ -393,7 +332,8 @@ def main():
                     "sil_score": sil_score,
                     "silhouette_vals": silhouette_vals,
                     "selected_columns": selected_columns,
-                    "converged_iteration": converged_iteration
+                    "converged_iteration": converged_iteration,
+                    "MAX_ITER": max_iter
                 }
                 
                 # Tambahkan label ke dataframe
@@ -420,9 +360,10 @@ def main():
                     st.subheader("Statistik Deskriptif")
                     st.write(results['df'][results['selected_columns']].describe())
                 
-                st.subheader("Preview Dataset dengan Label Cluster")
-                st.dataframe(results['df'].head(10))
-                
+                st.subheader("Dataset dengan Label Cluster")
+                st.dataframe(results['df'])
+                cluster_counts= pd.Series(results['labels']).value_counts().sort_index()
+
                 # Download dataset dengan label
                 csv = results['df'].to_csv(index=False)
                 st.download_button(
@@ -437,7 +378,7 @@ def main():
                 st.header("Visualisasi Clustering GMM")
                 
                 st.metric(
-                    label="Jumlah Iterasi Hingga Konvergensi",
+                    label=f"Jumlah Iterasi Hingga Konvergensi (Max: {results['MAX_ITER']})",
                     value=f"{results['converged_iteration']}",
                     help="Jumlah iterasi hingga konvergensi algoritma GMM"
                 )
@@ -468,6 +409,15 @@ def main():
                 ax.set_xticklabels([f"Cluster {i}" for i in range(results['n_components'])])
                 plt.colorbar(im, ax=ax, label="Probabilitas")
                 
+                st.pyplot(fig)
+    
+                # Tampilkan distribusi cluster sebagai plot
+                st.subheader("Distribusi Cluster")
+                fig, ax = plt.subplots(figsize=(8, 6))
+                ax.bar(cluster_counts.index, cluster_counts.values)
+                ax.set_xlabel("Cluster")
+                ax.set_ylabel("Jumlah Sampel")
+                ax.set_title("Distribusi Cluster")
                 st.pyplot(fig)
 
                 display_gmm_results(results['gmm'], results['X_pca'])
@@ -515,7 +465,14 @@ def main():
                             progress_bar.progress(progress)
                             
                             # Fit GMM
-                            gmm_k = GaussianMixture(n_components=k, random_state=42)
+                            gmm_k = GaussianMixture(
+                                n_components=k,
+                                covariance_type='full',
+                                n_init=n_init, 
+                                max_iter=max_iter,
+                                tol=tolerance, 
+                                random_state=42
+                                )
                             labels_k = gmm_k.fit_predict(results['X_scaled'])
                             
                             # Hitung Silhouette
@@ -593,7 +550,9 @@ def main():
                         gmm_k = GaussianMixture(
                             n_components=k,
                             covariance_type='full',
-                            n_init=1,
+                            n_init=n_init,
+                            max_iter=max_iter,
+                            tol=tolerance,
                             random_state=42
                         )
                         gmm_k.fit(results['X_scaled'])
