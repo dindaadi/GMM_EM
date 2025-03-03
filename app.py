@@ -25,13 +25,13 @@ st.set_page_config(
 def plot_ellipse(gmm, ax):
     """Gambar ellipse berdasarkan mean dan covariance matrix"""
     colors = cm.viridis(np.linspace(0, 1, gmm.n_components))  # Viridis colormap
-    for i, (mean, cov) in enumerate(zip(gmm.means_, gmm.covariances_)):
+    for i, (mean, cov, color) in enumerate(zip(gmm.means_, gmm.covariances_, colors)):
         vals, vecs = np.linalg.eigh(cov)
         angle = np.degrees(np.arctan2(vecs[1, 0], vecs[0, 0]))
 
         width, height = 2 * np.sqrt(5.991 * vals)
         ellip = Ellipse(xy=mean, width=width, height=height, angle=angle,
-                    edgecolor=colors[i], facecolor='none',fill=False, linestyle='--')
+                    edgecolor=color, facecolor='none',fill=False, linestyle='--')
         ax.add_patch(ellip)
 
 def create_silhouette_plot(silhouette_vals, labels, n_components, sil_score):
