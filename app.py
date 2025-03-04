@@ -144,8 +144,6 @@ def create_cluster_visualization(X_pca, labels, gmm):
 
 # Fungsi untuk menampilkan hasil numerik clustering GMM
 def display_gmm_results(gmm, X_pca):
-    st.header("Hasil Numerik Clustering GMM")
-    
     # Tampilkan mean setiap cluster
     st.subheader("Mean setiap cluster:")
     for i, mean in enumerate(gmm.means_):
@@ -251,9 +249,9 @@ def main():
             )
 
             tolerance = st.sidebar.number_input(
-                "Tolerance (default=1e-3):", 
+                "Tolerance (default=1e-6):", 
                 min_value=0.0, 
-                value=1e-3, 
+                value=1e-6, 
                 format="%.3e",
                 help="Kriteria konvergensi algoritma"
             )
@@ -415,20 +413,30 @@ def main():
                 
                 st.pyplot(fig)
     
-                # Tampilkan distribusi cluster sebagai plot
+                # Distribusi cluster
                 st.subheader("Distribusi Cluster")
-                cluster_counts= pd.Series(results['labels']).value_counts().sort_index()
-                fig, ax = plt.subplots(figsize=(8, 6))
-                ax.bar(cluster_counts.index, cluster_counts.values, color=cm.viridis(cluster_counts.index / len(cluster_counts)))
-                ax.set_xlabel("Cluster")
-                ax.set_ylabel("Jumlah Sampel")
-                ax.set_title("Distribusi Cluster")
-                ax.set_xticks(np.arange(results['n_components']))
-                ax.set_xticklabels([f"Cluster {i}" for i in range(results['n_components'])])
+                cluster_counts = df['Cluster'].value_counts().sort_index()
+            
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+                ax1.bar(cluster_counts.index, cluster_counts.values, color=cm.viridis(cluster_counts.index / results['n_components']))
+                ax1.set_xlabel("Cluster")
+                ax1.set_ylabel("Jumlah Sampel")
+                ax1.set_title("Jumlah Sampel per Cluster")
+                ax1.set_xticks(np.arange(results['n_components']))
+                ax1.set_xticklabels([f"Cluster {i}" for i in range(results['n_components'])])
+            
+                ax2.pie(cluster_counts.values, labels=[f"Cluster {i}" for i in cluster_counts.index], 
+                    autopct='%1.1f%%', colors=plt.cm.viridis(cluster_counts.index / results['n_components']))
+                ax2.set_title("Proporsi Cluster")
+            
                 st.pyplot(fig)
 
             # Tab 3: Hasil Numerik Label Cluster
             with tab3:
+                st.header("Hasil Numerik Clustering GMM")
+                st.subheader("Distribusi Label Setiap Cluster")
+                cluster_counts.rename("Jumlah Sampel", inplace=True)
+                st.dataframe(cluster_counts)
                 display_gmm_results(results['gmm'], results['X_pca'])
 
             # Tab 4: Evaluasi Silhouette
