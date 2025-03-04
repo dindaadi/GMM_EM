@@ -360,8 +360,6 @@ def main():
                     st.subheader("Statistik Deskriptif")
                     st.write(dfa.describe())
                 
-                st.subheader("Dataset")
-                st.dataframe(dfa)
                 st.subheader("Dataset dengan Label Cluster")
                 st.dataframe(df)
 
