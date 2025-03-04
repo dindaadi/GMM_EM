@@ -135,7 +135,7 @@ def create_cluster_visualization(X_pca, labels, gmm):
     ax.legend(loc="upper right")
     
     # Pengaturan plot
-    ax.set_title("Visualisasi Clustering GMM dengan Batas Elips", fontsize=14)
+    ax.set_title("Visualisasi Clustering GMM dengan PCA", fontsize=14)
     ax.set_xlabel("Principal Component 1", fontsize=12)
     ax.set_ylabel("Principal Component 2", fontsize=12)
     ax.grid(True, linestyle='--', alpha=0.3)
@@ -144,17 +144,17 @@ def create_cluster_visualization(X_pca, labels, gmm):
 
 # Fungsi untuk menampilkan hasil numerik clustering GMM
 def display_gmm_results(gmm, X_pca):
-    st.header("Hasil Numerik Clustering GMM-EM")
+    st.header("Hasil Numerik Clustering GMM")
     
     # Tampilkan mean setiap cluster
-    st.write("Mean setiap cluster:")
+    st.subheader("Mean setiap cluster:")
     for i, mean in enumerate(gmm.means_):
         st.write(f"Cluster {i}:")
         mean_df = pd.DataFrame(mean)
         st.table(mean_df)
 
     # Tampilkan proporsi setiap cluster
-    st.write("\nProporsi setiap cluster:")
+    st.subheader("\nProporsi setiap cluster:")
     weight_data = []
     for i, weight in enumerate(gmm.weights_):
         weight_data.append({
@@ -165,7 +165,7 @@ def display_gmm_results(gmm, X_pca):
     st.table(weight_df)
 
     # Tampilkan kovarians setiap cluster
-    st.write("\nKovarians setiap cluster:")
+    st.subheader("\nKovarians setiap cluster:")
     for i, cov in enumerate(gmm.covariances_):
         st.write(f"Cluster {i}:")
         cov_df = pd.DataFrame(cov)
@@ -186,9 +186,10 @@ def main():
     # Menu navigasi yang ditingkatkan dengan tab
     if uploaded_file is not None:
         # Gunakan tabs untuk navigasi yang lebih visual dan modern
-        tab1, tab2, tab3, tab4 = st.tabs([
-            "📄 Dataset & Preprocessing", 
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "📄 Dataset",
             "📊 Visualisasi Clustering", 
+            "📝 Hasil Numerik Clustering", 
             "📈 Evaluasi Silhouette", 
             "🔍 Analisis AIC & BIC"
         ])
@@ -196,6 +197,7 @@ def main():
         # Membaca dataset
         try:
             df = pd.read_csv(uploaded_file)
+            dfa = df.copy()
             st.sidebar.success("✅ Dataset berhasil diunggah!")
         except Exception as e:
             st.error(f"❌ Error saat membaca file: {e}")
@@ -290,6 +292,9 @@ def main():
                 gmm.fit(X_scaled)
                 labels = gmm.predict(X_scaled)
 
+                # Tambahkan label ke dataframe
+                df["Cluster"] = labels
+
                 # Ambil jumlah iterasi hingga konvergensi
                 converged_iteration = gmm.n_iter_
                 
@@ -335,9 +340,6 @@ def main():
                     "converged_iteration": converged_iteration,
                     "MAX_ITER": max_iter
                 }
-                
-                # Tambahkan label ke dataframe
-                df["Cluster"] = labels
             
             st.success("✅ GMM Clustering selesai!")
         
@@ -347,31 +349,33 @@ def main():
             
             # Tab 1: Dataset & Preprocessing
             with tab1:
-                st.header("Dataset & Preprocessing")
-                
+                st.header("Dataset")
                 col1, col2 = st.columns(2)
                 with col1:
                     st.subheader("Informasi Dataset")
-                    st.write(f"**Jumlah baris:** {results['df'].shape[0]}")
-                    st.write(f"**Jumlah kolom:** {results['df'].shape[1]}")
+                    st.write(f"**Jumlah baris:** {dfa.shape[0]}")
+                    st.write(f"**Jumlah kolom:** {dfa.shape[1]}")
+                    st.write(f"**Fitur dataset:** {', '.join(dfa.columns.tolist())}")
                     st.write(f"**Fitur yang digunakan:** {', '.join(results['selected_columns'])}")
                 
                 with col2:
                     st.subheader("Statistik Deskriptif")
-                    st.write(results['df'][results['selected_columns']].describe())
+                    st.write(dfa.describe())
                 
+                st.subheader("Dataset")
+                st.dataframe(dfa)
                 st.subheader("Dataset dengan Label Cluster")
-                st.dataframe(results['df'])
-                cluster_counts= pd.Series(results['labels']).value_counts().sort_index()
+                st.dataframe(df)
 
                 # Download dataset dengan label
-                csv = results['df'].to_csv(index=False)
+                csv = df.to_csv(index=False)
                 st.download_button(
                     label="⬇️ Download Dataset dengan Label Cluster",
                     data=csv,
                     file_name="gmm_clustering_results.csv",
                     mime="text/csv"
                 )
+               
             
             # Tab 2: Visualisasi Clustering
             with tab2:
@@ -413,6 +417,7 @@ def main():
     
                 # Tampilkan distribusi cluster sebagai plot
                 st.subheader("Distribusi Cluster")
+                cluster_counts= pd.Series(results['labels']).value_counts().sort_index()
                 fig, ax = plt.subplots(figsize=(8, 6))
                 ax.bar(cluster_counts.index, cluster_counts.values, color=cm.viridis(cluster_counts.index / len(cluster_counts)))
                 ax.set_xlabel("Cluster")
@@ -422,10 +427,12 @@ def main():
                 ax.set_xticklabels([f"Cluster {i}" for i in range(results['n_components'])])
                 st.pyplot(fig)
 
-                display_gmm_results(results['gmm'], results['X_pca'])
-            
-            # Tab 3: Evaluasi Silhouette
+            # Tab 3: Hasil Numerik Label Cluster
             with tab3:
+                display_gmm_results(results['gmm'], results['X_pca'])
+
+            # Tab 4: Evaluasi Silhouette
+            with tab4:
                 st.header("Evaluasi Silhouette")
                 
                 if results['n_components'] <= 1:
@@ -509,8 +516,8 @@ def main():
                         f"Berdasarkan grafik perbandingan, jumlah komponen optimal adalah **{range_n_clusters[max_idx]}**."
                     )
             
-            # Tab 4: Analisis AIC & BIC
-            with tab4:
+            # Tab 5: Analisis AIC & BIC
+            with tab5:
                 st.header("Analisis AIC & BIC")
                 
                 # Tampilkan nilai AIC & BIC saat ini
