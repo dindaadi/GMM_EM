@@ -144,13 +144,6 @@ def create_cluster_visualization(X_pca, labels, gmm):
 
 # Fungsi untuk menampilkan hasil numerik clustering GMM
 def display_gmm_results(gmm, X_pca):
-    # Tampilkan mean setiap cluster
-    st.subheader("Mean setiap cluster:")
-    for i, mean in enumerate(gmm.means_):
-        st.write(f"Cluster {i}:")
-        mean_df = pd.DataFrame(mean)
-        st.table(mean_df)
-
     # Tampilkan proporsi setiap cluster
     st.subheader("\nProporsi setiap cluster:")
     weight_data = []
@@ -160,7 +153,14 @@ def display_gmm_results(gmm, X_pca):
             "Proporsi": weight
         })
     weight_df = pd.DataFrame(weight_data)
-    st.table(weight_df)
+    st.dataframe(weight_df)
+    
+    # Tampilkan mean setiap cluster
+    st.subheader("Mean setiap cluster:")
+    for i, mean in enumerate(gmm.means_):
+        st.write(f"Cluster {i}:")
+        mean_df = pd.DataFrame(mean)
+        st.table(mean_df)
 
     # Tampilkan kovarians setiap cluster
     st.subheader("\nKovarians setiap cluster:")
