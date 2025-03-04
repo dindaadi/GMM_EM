@@ -629,7 +629,8 @@ def main():
             
             ### Tab yang Tersedia:
             - **Dataset & Preprocessing**: Melihat dataset dan menyiapkan data
-            - **Visualisasi Clustering**: Visualisasi hasil clustering dengan PCA dan hasil numerik
+            - **Visualisasi Clustering**: Visualisasi hasil clustering dengan PCA 
+            - **Hasil Numerik**: Menampilkan hasil numerik clustering GMM
             - **Evaluasi Silhouette**: Analisis kualitas clustering dengan silhouette score
             - **Analisis AIC & BIC**: Menentukan jumlah cluster optimal dengan AIC dan BIC
             """
