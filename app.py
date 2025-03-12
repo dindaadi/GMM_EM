@@ -145,7 +145,7 @@ def create_cluster_visualization(X_pca, labels, gmm):
 # Fungsi untuk menampilkan hasil numerik clustering GMM
 def display_gmm_results(gmm, X_pca):
     # Tampilkan proporsi setiap cluster
-    st.subheader("\nProporsi setiap cluster:")
+    st.subheader("\nMixing Proporsi setiap cluster:")
     weight_data = []
     for i, weight in enumerate(gmm.weights_):
         weight_data.append({
