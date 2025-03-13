@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import seaborn as sns
+from scipy.stats import multivariate_normal
 from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
@@ -169,6 +170,27 @@ def display_gmm_results(gmm, X_pca):
         cov_df = pd.DataFrame(cov)
         st.table(cov_df)
 
+def AIC_BIC_python(model, data, komponen):
+    N = data.shape[0]  # Jumlah sampel
+    d = data.shape[1]  # Jumlah fitur (variabel)
+    s = komponen  # Jumlah komponen
+
+    # Hitung log-likelihood total
+    log_likelihood = model.score(data) * N  # Karena score() adalah log-likelihood per sampel
+    # Hitung jumlah parameter kovarians (m) sesuai Fraley & Raftery (2002)
+    m = (d * (d + 1)) // 2
+    # Hitung jumlah parameter (df)
+    df = (s - 1) + (s * d) + m
+
+    # Hitung AIC secara manual
+    aic_manual = -2 * log_likelihood + 2 * df
+
+    # Hitung BIC secara manual
+    bic_manual = -2 * log_likelihood + df * np.log(N)
+
+    return aic_manual, bic_manual
+
+
 
 # =============================================
 # APLIKASI UTAMA
@@ -297,8 +319,9 @@ def main():
                 converged_iteration = gmm.n_iter_
                 
                 # Hitung metrik
-                aic = gmm.aic(X_scaled)
-                bic = gmm.bic(X_scaled)
+                # aic = gmm.aic(X_scaled)
+                # bic = gmm.bic(X_scaled)
+                aic, bic = AIC_BIC_python(gmm, X_scaled, n_components)
                 
                 # Hitung Silhouette Score jika jumlah cluster > 1
                 if n_components > 1:
@@ -382,6 +405,7 @@ def main():
                     value=f"{results['converged_iteration']}",
                     help="Jumlah iterasi hingga konvergensi algoritma GMM"
                 )
+                st.write(results['n_components'])
 
                 # Visualisasi dengan elips dan centroid
                 fig_cluster = create_cluster_visualization(
@@ -573,8 +597,9 @@ def main():
                         gmm_k.fit(results['X_scaled'])
                         
                         # Hitung AIC & BIC
-                        aic_values.append(gmm_k.aic(results['X_scaled']))
-                        bic_values.append(gmm_k.bic(results['X_scaled']))
+                        aic, bic = AIC_BIC_python(gmm_k, results['X_scaled'], k)
+                        aic_values.append(aic)
+                        bic_values.append(bic)
                     
                     # Reset progress bar
                     progress_bar.empty()
