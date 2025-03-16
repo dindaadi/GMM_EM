@@ -27,8 +27,10 @@ def plot_ellipse(gmm, ax):
     """Gambar ellipse berdasarkan mean dan covariance matrix"""
     colors = cm.viridis(np.linspace(0, 1, gmm.n_components))  # Viridis colormap
     for i, (mean, cov, color) in enumerate(zip(gmm.means_, gmm.covariances_, colors)):
-        vals, vecs = np.linalg.eigh(cov)
-        angle = np.degrees(np.arctan2(vecs[1, 0], vecs[0, 0]))
+        cov_matrix = np.diag(cov)
+        vals, vecs = np.linalg.eigh(cov_matrix) # Eigenvalues dan eigenvectors
+        angle = np.degrees(np.arctan2(*vecs[:, 1]))
+        # angle = np.degrees(np.arctan2(vecs[1, 0], vecs[0, 0])) # Untuk Kovarians Full
 
         width, height = 2 * np.sqrt(5.991 * vals)
         ellip = Ellipse(xy=mean, width=width, height=height, angle=angle,
@@ -303,7 +305,7 @@ def main():
                 # Train GMM
                 gmm = GaussianMixture(
                     n_components=n_components,
-                    covariance_type='full',
+                    covariance_type='diag',
                     n_init=n_init,
                     max_iter=max_iter,
                     tol=tolerance,
@@ -336,7 +338,7 @@ def main():
                 X_pca = pca.fit_transform(X_scaled)
                 gmm_viz = GaussianMixture(
                     n_components=n_components,
-                    covariance_type='full',
+                    covariance_type='diag',
                     n_init=n_init,
                     max_iter=max_iter,
                     tol=tolerance,
@@ -405,7 +407,6 @@ def main():
                     value=f"{results['converged_iteration']}",
                     help="Jumlah iterasi hingga konvergensi algoritma GMM"
                 )
-                st.write(results['n_components'])
 
                 # Visualisasi dengan elips dan centroid
                 fig_cluster = create_cluster_visualization(
@@ -506,7 +507,7 @@ def main():
                             # Fit GMM
                             gmm_k = GaussianMixture(
                                 n_components=k,
-                                covariance_type='full',
+                                covariance_type='diag',
                                 n_init=n_init, 
                                 max_iter=max_iter,
                                 tol=tolerance, 
@@ -588,7 +589,7 @@ def main():
                         # Fit GMM
                         gmm_k = GaussianMixture(
                             n_components=k,
-                            covariance_type='full',
+                            covariance_type='diag',
                             n_init=n_init,
                             max_iter=max_iter,
                             tol=tolerance,
