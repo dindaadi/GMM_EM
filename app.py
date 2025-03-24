@@ -24,17 +24,17 @@ st.set_page_config(
 # FUNGSI UTILITAS
 # =============================================
 def plot_ellipse(gmm, ax):
-    """Gambar ellipse berdasarkan mean dan covariance matrix"""
+    """Gambar ellipse untuk GMM dengan tipe kovarian 'tied'"""
     colors = cm.viridis(np.linspace(0, 1, gmm.n_components))  # Viridis colormap
-    for i, (mean, cov, color) in enumerate(zip(gmm.means_, gmm.covariances_, colors)):
-        cov_matrix = np.diag(cov)
-        vals, vecs = np.linalg.eigh(cov_matrix) # Eigenvalues dan eigenvectors
-        angle = np.degrees(np.arctan2(*vecs[:, 1]))
-        # angle = np.degrees(np.arctan2(vecs[1, 0], vecs[0, 0])) # Untuk Kovarians Full
+    cov_matrix = gmm.covariances_  # Single covariance matrix for all clusters
 
-        width, height = 2 * np.sqrt(5.991 * vals)
+    U, s, Vt = np.linalg.svd(cov_matrix)
+    angle = np.degrees(np.arctan2(U[1, 0], U[0, 0]))
+    width, height = 2 * np.sqrt(5.991 * s)  # Chi-squared value for 95% CI
+
+    for i, (mean, color) in enumerate(zip(gmm.means_, colors)):
         ellip = Ellipse(xy=mean, width=width, height=height, angle=angle,
-                    edgecolor=color, facecolor='none',fill=False, linestyle='--')
+                        edgecolor=color, facecolor='none', fill=False, linestyle='--')
         ax.add_patch(ellip)
 
 def create_silhouette_plot(silhouette_vals, labels, n_components, sil_score):
@@ -254,14 +254,6 @@ def main():
                 max_value=min(10, len(df) // 20),  # Batas atas berdasarkan ukuran data
                 value=3
             )
-            
-            n_init = st.slider(
-                "Jumlah inisialisasi:",
-                min_value=1,
-                max_value=20,
-                value=10,
-                help="Jumlah reinisialisasi algoritma dengan berbagai nilai awal"
-            )
 
             max_iter = st.slider(
                 "Maksimum Iterasi:", 
@@ -269,15 +261,22 @@ def main():
                 max_value=500, 
                 value=100, 
                 step=10,
-                help="Jumlah iterasi maksimum untuk konvergensi algoritma"
+                help="Jumlah iterasi maksimum untuk konvergensi algoritme"
+            )
+
+            random_state = st.sidebar.number_input(
+                "Random State (seed):",
+                min_value=0,
+                value=321,
+                help="Mengontrol keacakan dalam algoritme."
             )
 
             tolerance = st.sidebar.number_input(
-                "Tolerance (default=1e-6):", 
+                "Tolerance (default=1e-3):", 
                 min_value=0.0, 
-                value=1e-6, 
+                value=1e-3, 
                 format="%.3e",
-                help="Kriteria konvergensi algoritma"
+                help="Kriteria konvergensi algoritme"
             )
 
             # Tombol untuk menjalankan GMM
@@ -305,11 +304,10 @@ def main():
                 # Train GMM
                 gmm = GaussianMixture(
                     n_components=n_components,
-                    covariance_type='diag',
-                    n_init=n_init,
+                    covariance_type='tied',
                     max_iter=max_iter,
                     tol=tolerance,
-                    random_state=42
+                    random_state=random_state
                 )
                 gmm.fit(X_scaled)
                 labels = gmm.predict(X_scaled)
@@ -338,11 +336,10 @@ def main():
                 X_pca = pca.fit_transform(X_scaled)
                 gmm_viz = GaussianMixture(
                     n_components=n_components,
-                    covariance_type='diag',
-                    n_init=n_init,
+                    covariance_type='tied',
                     max_iter=max_iter,
                     tol=tolerance,
-                    random_state=42
+                    random_state=random_state
                 )
                 gmm_viz.fit(X_pca)
                 
@@ -507,11 +504,10 @@ def main():
                             # Fit GMM
                             gmm_k = GaussianMixture(
                                 n_components=k,
-                                covariance_type='diag',
-                                n_init=n_init, 
+                                covariance_type='tied', 
                                 max_iter=max_iter,
                                 tol=tolerance, 
-                                random_state=42
+                                random_state=random_state
                                 )
                             labels_k = gmm_k.fit_predict(results['X_scaled'])
                             
@@ -589,11 +585,10 @@ def main():
                         # Fit GMM
                         gmm_k = GaussianMixture(
                             n_components=k,
-                            covariance_type='diag',
-                            n_init=n_init,
+                            covariance_type='tied',
                             max_iter=max_iter,
                             tol=tolerance,
-                            random_state=42
+                            random_state=random_state
                         )
                         gmm_k.fit(results['X_scaled'])
                         
@@ -666,6 +661,12 @@ def main():
         "**GMM Clustering Explorer** membantu Anda menganalisis data dengan algoritma Gaussian Mixture Model (GMM) "
         "dan mengevaluasinya menggunakan Silhouette Score, AIC, dan BIC."
     )
+    st.markdown("""
+    <hr style="border: 1px solid #f0f0f0;" />
+    <p style="text-align: center;">
+    &copy; 2025 Website ini dibuat oleh Dinda Adimanggala & Masithoh Yessi Rochayani
+    </p>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
