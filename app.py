@@ -527,6 +527,10 @@ def main():
                               marker='*', edgecolor='black', zorder=5, 
                               label=f'Max: {range_n_clusters[max_idx]} clusters')
                     
+                    # Tambahkan label nilai di atas setiap marker
+                    for i, score in enumerate(sil_scores):
+                        ax.text(range_n_clusters[i], score, f'{score:.2f}', fontsize=8, ha='center', va='bottom', color='blue')
+                    
                     ax.set_xlabel("Jumlah Komponen", fontsize=12)
                     ax.set_ylabel("Silhouette Score", fontsize=12)
                     ax.set_title("Silhouette Score untuk Berbagai Jumlah Komponen", fontsize=14)
@@ -618,6 +622,12 @@ def main():
                 ax.scatter(min_clusters + bic_min_idx, bic_values[bic_min_idx], s=200, c='red', 
                          marker='*', edgecolor='black', zorder=5, 
                          label=f'Min BIC: {min_clusters + bic_min_idx} komponen')
+                
+                # Tambahkan label nilai di atas setiap marker
+                for i, (aic, bic) in enumerate(zip(aic_values, bic_values)):
+                    cluster_num = min_clusters + i
+                    ax.text(cluster_num, aic, f'{aic:.1f}', fontsize=8, ha='right', va='bottom', color='blue')
+                    ax.text(cluster_num, bic, f'{bic:.1f}', fontsize=8, ha='right', va='top', color='red')
                 
                 ax.set_xlabel("Jumlah Komponen", fontsize=12)
                 ax.set_ylabel("Nilai Kriteria", fontsize=12)
