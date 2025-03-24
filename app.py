@@ -529,8 +529,8 @@ def main():
                     
                     # Tambahkan label nilai di atas setiap marker
                     for i, score in enumerate(sil_scores):
-                        ax.text(range_n_clusters[i], score + 0.02, f'{score:.2f}', fontsize=9, ha='center', va='top', color='blue')
-                    
+                        ax.text(range_n_clusters[i], score + 0.03, f'{score:.2f}', fontsize=9, ha='center', color='blue')
+                    r
                     ax.set_xlabel("Jumlah Komponen", fontsize=12)
                     ax.set_ylabel("Silhouette Score", fontsize=12)
                     ax.set_title("Silhouette Score untuk Berbagai Jumlah Komponen", fontsize=14)
