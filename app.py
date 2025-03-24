@@ -529,7 +529,7 @@ def main():
                     
                     # Tambahkan label nilai di atas setiap marker
                     for i, score in enumerate(sil_scores):
-                        ax.text(range_n_clusters[i], score + 2, f'{score:.2f}', fontsize=9, ha='center', color='blue')
+                        ax.text(range_n_clusters[i], score, f'{score:.2f}', fontsize=9, ha='center', va='top', color='blue')
                     
                     ax.set_xlabel("Jumlah Komponen", fontsize=12)
                     ax.set_ylabel("Silhouette Score", fontsize=12)
@@ -627,7 +627,7 @@ def main():
                 for i, (aic, bic) in enumerate(zip(aic_values, bic_values)):
                     cluster_num = min_clusters + i
                     ax.text(cluster_num, aic + 2, f'{aic:.1f}', fontsize=9, ha='center', color='blue')
-                    ax.text(cluster_num, bic - 2, f'{bic:.1f}', fontsize=9, ha='center', color='red')
+                    ax.text(cluster_num, bic + 2, f'{bic:.1f}', fontsize=9, ha='center', color='red')
                 
                 ax.set_xlabel("Jumlah Komponen", fontsize=12)
                 ax.set_ylabel("Nilai Kriteria", fontsize=12)
