@@ -529,7 +529,7 @@ def main():
                     
                     # Tambahkan label nilai di atas setiap marker
                     for i, score in enumerate(sil_scores):
-                        ax.text(range_n_clusters[i], score, f'{score:.2f}', fontsize=8, ha='center', va='bottom', color='blue')
+                        ax.text(range_n_clusters[i], score + 2, f'{score:.2f}', fontsize=9, ha='center', color='blue')
                     
                     ax.set_xlabel("Jumlah Komponen", fontsize=12)
                     ax.set_ylabel("Silhouette Score", fontsize=12)
@@ -626,8 +626,8 @@ def main():
                 # Tambahkan label nilai di atas setiap marker
                 for i, (aic, bic) in enumerate(zip(aic_values, bic_values)):
                     cluster_num = min_clusters + i
-                    ax.text(cluster_num, aic, f'{aic:.1f}', fontsize=8, ha='right', va='bottom', color='blue')
-                    ax.text(cluster_num, bic, f'{bic:.1f}', fontsize=8, ha='right', va='top', color='red')
+                    ax.text(cluster_num, aic + 2, f'{aic:.1f}', fontsize=9, ha='center', color='blue')
+                    ax.text(cluster_num, bic - 2, f'{bic:.1f}', fontsize=9, ha='center', color='red')
                 
                 ax.set_xlabel("Jumlah Komponen", fontsize=12)
                 ax.set_ylabel("Nilai Kriteria", fontsize=12)
@@ -674,7 +674,7 @@ def main():
     st.markdown("""
     <hr style="border: 1px solid #f0f0f0;" />
     <p style="text-align: center;">
-    &copy; 2025 Website ini dibuat oleh Dinda Adimanggala & Masithoh Yessi Rochayani
+    &copy; 2025 Website ini dibuat oleh Masithoh Yessi Rochayani & Dinda Adimanggala
     </p>
     """, unsafe_allow_html=True)
 
